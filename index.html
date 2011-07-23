@@ -1,0 +1,261 @@
+<html>
+  <head>
+    <style type="text/css">
+      
+      #wrapper{
+        width: 954px;
+        height: 600px;
+        background-image:url('zeitBg.png');
+        background-repeat:no-repeat;
+        margin: auto;
+        position: relative;
+      }
+      footer{
+      clear: both;
+        width: 954px;
+        height: 900px;
+        background-image:url('footer.png');
+        background-repeat:no-repeat;
+        margin: auto;
+        position: relative;}
+      #video{
+        margin: 205px 0 0 11px; padding: 0;  width: 540px; height: 304px; float: left;
+      }
+      body {
+      	
+      	margin: 0;
+      	padding: 0;
+      	font: 10px normal Verdana, Arial, Helvetica, sans-serif;
+      	color: #444;
+      }
+      h1 {font-size: 3em; margin: 20px 0;}
+      .container {width: 380px; margin: 205px 0 0 11px; float: left; }
+      ul.tabs {
+      	margin: 0;
+      	padding: 0;
+      	float: left;
+      	list-style: none;
+      	height: 32px;
+      	border-bottom: 1px solid #999;
+      	border-left: 1px solid #999;
+      	width: 100%;
+      }
+      ul.tabs li {
+      	float: left;
+      	margin: 0;
+      	padding: 0;
+      	height: 31px;
+      	line-height: 31px;
+      	border: 1px solid #999;
+      	border-left: none;
+      	margin-bottom: -1px;
+      	background: #e0e0e0;
+      	overflow: hidden;
+      	position: relative;
+      }
+      ul.tabs li a {
+      	text-decoration: none;
+      	color: #000;
+      	display: block;
+      	font-size: 1.2em;
+      	padding: 0 20px;
+      	border: 1px solid #fff;
+      	outline: none;
+      }
+      ul.tabs li a:hover {
+      	background: #ccc;
+      }	
+      html ul.tabs li.active, html ul.tabs li.active a:hover  {
+      	background: #fff;
+      	border-bottom: 1px solid #fff;
+      }
+      .tab_container {
+      	border: 1px solid #999;
+      	border-top: none;
+      	overflow: auto;
+      	overflow-x:hidden; 
+      	clear: both;
+      	float: left; 
+      	width: 100%;
+      	background: #fff;
+      	-moz-border-radius-bottomright: 5px;
+      	-khtml-border-radius-bottomright: 5px;
+      	-webkit-border-bottom-right-radius: 5px;
+      	-moz-border-radius-bottomleft: 5px;
+      	-khtml-border-radius-bottomleft: 5px;
+      	-webkit-border-bottom-left-radius: 5px;
+      }
+      .tab_content {
+        
+      	padding: 5px;
+      	font-size: 1.2em;
+      	height: 260px;
+      	
+      }
+      #tab2{
+        overflow: auto;
+      }
+      .tab_content h2 {
+      	font-weight: normal;
+      	padding-bottom: 10px;
+      	border-bottom: 1px dashed #ddd;
+      	font-size: 1.8em;
+      }
+      .tab_content h3 a{
+      	color: #254588;
+      }
+      .tab_content img {
+      	float: left;
+      }
+      #tweetMapContainer{
+        width: 954px;
+        height: 300px;
+        display:none;
+        clear: both; 
+        padding: 10px 0 0 0;
+      }
+      #map{
+        width: 954px;
+        height: 280px;
+        visibility: hidden;
+       
+        clear: both; 
+        
+      }
+      </style> 
+      <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script> 
+      <script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?sensor=false"></script> 
+      <script type="text/javascript"> 
+    
+      
+    
+      $(function() {
+         var tweetList = [];
+         var pageInc = 0;
+         var myLatlng = new google.maps.LatLng(51.499054,-0.133524);
+         var myOptions = {
+            zoom: 11,
+            center: myLatlng,
+            mapTypeId: google.maps.MapTypeId.ROADMAP
+          }
+          var map = new google.maps.Map(document.getElementById("map"), myOptions);
+      	//Default Action
+      	$(".tab_content").hide(); //Hide all content
+      	$("ul.tabs li:first").addClass("active").show(); //Activate first tab
+      	$(".tab_content:first").show(); //Show first tab content
+      	
+      	//On Click Event
+      	$("ul.tabs li").click(function() {
+      	  if($(this).find('a').attr('href') == '#tab2'){
+      	    console.log('twitter');
+      	     $('#tweetMapContainer').slideDown('slow', function() {
+                google.maps.event.trigger(map, 'resize', function(){
+                  console.log('resize complete');
+                });
+                 $("#map").css( 'visibility', 'visible');
+                 map.setCenter(myLatlng);
+              });
+      	  }else{
+    	      $('#tweetMapContainer').slideUp('slow', function() {
+              // Animation complete.
+            });
+      	  
+      	  }
+      		$("ul.tabs li").removeClass("active"); //Remove any "active" class
+      		$(this).addClass("active"); //Add "active" class to selected tab
+      		$(".tab_content").hide(); //Hide all tab content
+      		var activeTab = $(this).find("a").attr("href"); //Find the rel attribute value to identify the active tab + content
+      		$(activeTab).fadeIn(); //Fade in the active content
+      		return false;
+      	});
+      	
+      	
+    	 var animate = function(m){
+		    	m.setAnimation(google.maps.Animation.BOUNCE);
+		    	setTimeout(function(){
+		    		m.setAnimation(null);
+		    	}, 2000);
+
+		    }
+		    
+      	var finalSort =  function(a){
+		 			pageInc++;
+		 			if(pageInc == 5){
+		 				tweetList.sort(function(a, b){
+						 return b.id-a.id
+						});
+						//pb.start(tweetList.length);
+						$.each(tweetList, function(idx,t){
+      					//pb.updateBar(1);
+						    var lat = t.geo.coordinates[0];
+					      var lng = t.geo.coordinates[1];
+							    var img = 'http://www.google.com/intl/en_us/mapfiles/ms/icons/blue-dot.png';
+							    var coords = new google.maps.LatLng(lat,lng);
+							    var marker = new google.maps.Marker({
+				          position: coords, 
+				          icon: img,
+				          map: map,
+				        });
+				        
+				        
+						    var tContainer = $('#twitter-container');
+						    
+						    $(tContainer).append('<div class="'+idx +'" style="z-index:99999; width:250px; clear: both; border-bottom:1px solid white; padding: 10px;" > <img  style="float:left; max-height:40px;" src="'+ t.profile_image_url +'" /> '+ t.text +' <br />' + t.created_at +'</div>');
+						    $('.'+ idx +'').mouseover(function(){
+						      	map.panTo(coords);
+								    google.maps.event.trigger(map, 'resize');
+							      //map.setZoom( 13 );
+							      animate(marker);
+					  	 });  
+				   });
+	        }
+	      }
+       
+       //only get the first 5 pages
+      	for (z=0;z<=5;z++){
+           var jqxhr = $.getJSON("http://search.twitter.com/search.json?callback=?",{ geocode: '51.499054,-0.133524,1mi', rpp: "100", result_type: "recent", page: z + 1 }, function(data) {
+            $.each(data.results, function(idx,t){
+  					    if(t.geo){
+  					    	tweetList.push(t);
+  						  }
+  				   });
+          }).complete(function(){ 
+				     var thisData = this.data.split("&");
+					   var p = (thisData[3].split('='));
+				     finalSort( p )
+				   });
+      	}
+      });
+      </script> 
+  </head>
+  <body>
+    <div id="wrapper">
+      <div id="video">
+        <video src="riots.mp4" width="540" height="304" controls="controls">
+          Your browser does not support the video tag.
+        </video>
+      </div>
+      <div class="container">
+          <ul class="tabs"> 
+              <li><a href="#tab1">Featured Videos</a></li> 
+              <li><a href="#tab2">Twitter</a></li> 
+              <li><a href="#tab3">Youtube</a></li>
+          </ul> 
+          <div class="tab_container"> 
+              <div id="tab1" class="tab_content"> 
+                  <img src="featuredVideo.png"> 
+              </div> 
+              <div id="tab2" class="tab_content">
+                <div id="twitter-container"></div>
+              </div> 
+              <div id="tab3" class="tab_content"></div>
+          </div>
+      </div>
+      <div id="tweetMapContainer">
+        <div id="map"></div> 
+      </div> 
+      <footer></footer>
+    </div>
+  </body>
+
+</html>
